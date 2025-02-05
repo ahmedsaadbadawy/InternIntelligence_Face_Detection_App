@@ -66,8 +66,9 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
 
     if (faces.isNotEmpty) {
       final uiImage = await ImageUtils.loadImage(imageFile);
-      if (!mounted)
+      if (!mounted) {
         return; // Ensure the widget is still mounted after async operation
+      }
       setState(() {
         _image = imageFile;
         _faces = [faces.first]; // Keep only ONE face
@@ -107,6 +108,26 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
       );
     }
   }
+
+  Future<void> deleteFace(int id) async {
+  try {
+      await DatabaseHelper.instance.deleteFace(id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Face with ID $id deleted!")),
+      );
+
+      clearImage();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete face: $e")),
+      );
+    }
+}
 
   @override
   Widget build(BuildContext context) {
