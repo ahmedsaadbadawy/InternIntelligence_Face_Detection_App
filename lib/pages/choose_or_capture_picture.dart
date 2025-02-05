@@ -8,6 +8,7 @@ import '../widgets/face_painter.dart';
 import '../database/database_helper.dart';
 import '../models/face_model.dart';
 import '../utils/image_utils.dart';
+import 'face_list_page.dart';
 
 class ChooseOrCapturePicture extends StatefulWidget {
   const ChooseOrCapturePicture({super.key});
@@ -110,7 +111,7 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
   }
 
   Future<void> deleteFace(int id) async {
-  try {
+    try {
       await DatabaseHelper.instance.deleteFace(id);
 
       if (!mounted) return;
@@ -127,7 +128,7 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
         SnackBar(content: Text("Failed to delete face: $e")),
       );
     }
-}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,30 +152,64 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
           if (_faces.isEmpty) ...[
             ElevatedButton(
               onPressed: () => chooseOrCaptureImage(ImageSource.camera),
-              child: const Text("Capture Image"),
+              child: const Text("Capture Image",
+                  style: TextStyle(color: Color(0xFF06402b))),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () => chooseOrCaptureImage(ImageSource.gallery),
-              child: const Text("Choose Image"),
+              child: const Text("Choose Image",
+                  style: TextStyle(color: Color(0xFF06402b))),
             ),
           ] else if (_faces.isNotEmpty) ...[
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Enter Name'),
+            Container(
+              width: MediaQuery.of(context).size.width - 20,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.grey),
+              ),
+              child: TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.only(left: 20),
+                  labelText: 'Enter Name',
+                  border: InputBorder.none,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => saveFace(),
-              child: const Text("Save Face"),
+              child: const Text("Save Face",
+                  style: TextStyle(color: Color(0xFF06402b))),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => deleteFace(int.parse(_nameController.text)),
+              child: const Text("Delete Face",
+                  style: TextStyle(color: Color(0xFF06402b))),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: clearImage,
-              child: const Text("Clear Image"),
+              child: const Text("Clear Image",
+                  style: TextStyle(color: Color(0xFF06402b))),
             ),
           ]
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FaceListPage()),
+          );
+        },
+        backgroundColor: Colors.white,
+        child:  Icon(
+          Icons.photo_album_outlined,
+          color: Color(0xFF06402b),
+        ), // Set background color
       ),
     );
   }
