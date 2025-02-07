@@ -32,9 +32,14 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
 
   Future<void> requestPermissions() async {
     PermissionStatus cameraStatus = await Permission.camera.request();
-    PermissionStatus storageStatus = await Permission.storage.request();
-
-    if (!cameraStatus.isGranted || !storageStatus.isGranted) {
+    await Permission.storage.request();
+    if (cameraStatus.isGranted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Permissions has been granted!")),
+      );
+    }
+    else{
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Permissions not granted!")),
@@ -134,69 +139,85 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Face Recognition App')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (_image != null)
-            Center(
-              child: CustomPaint(
-                size: const Size(150, 150),
-                painter:
-                    _imageUi != null ? FacePainter(_imageUi!, _faces) : null,
-              ),
-            )
-          else
-            Center(child: const Icon(Icons.image, size: 150)),
-          const SizedBox(height: 20),
-          if (_faces.isEmpty) ...[
-            ElevatedButton(
-              onPressed: () => chooseOrCaptureImage(ImageSource.camera),
-              child: const Text("Capture Image",
-                  style: TextStyle(color: Color(0xFF06402b))),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => chooseOrCaptureImage(ImageSource.gallery),
-              child: const Text("Choose Image",
-                  style: TextStyle(color: Color(0xFF06402b))),
-            ),
-          ] else if (_faces.isNotEmpty) ...[
-            Container(
-              width: MediaQuery.of(context).size.width - 20,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.grey),
-              ),
-              child: TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.only(left: 20),
-                  labelText: 'Enter Name',
-                  border: InputBorder.none,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(minHeight: MediaQuery.of(context).size.height),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (_image != null)
+                      Center(
+                        child: CustomPaint(
+                          size: const Size(150, 150),
+                          painter: _imageUi != null
+                              ? FacePainter(_imageUi!, _faces)
+                              : null,
+                        ),
+                      )
+                    else
+                      Center(child: const Icon(Icons.image, size: 150)),
+                    const SizedBox(height: 20),
+                    if (_faces.isEmpty) ...[
+                      ElevatedButton(
+                        onPressed: () =>
+                            chooseOrCaptureImage(ImageSource.camera),
+                        child: const Text("Capture Image",
+                            style: TextStyle(color: Color(0xFF06402b))),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () =>
+                            chooseOrCaptureImage(ImageSource.gallery),
+                        child: const Text("Choose Image",
+                            style: TextStyle(color: Color(0xFF06402b))),
+                      ),
+                    ] else if (_faces.isNotEmpty) ...[
+                      Container(
+                        width: MediaQuery.of(context).size.width - 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            contentPadding: EdgeInsets.only(left: 20),
+                            labelText: 'Enter Name',
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () => saveFace(),
+                        child: const Text("Save Face",
+                            style: TextStyle(color: Color(0xFF06402b))),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () =>
+                            deleteFace(int.parse(_nameController.text)),
+                        child: const Text("Delete Face",
+                            style: TextStyle(color: Color(0xFF06402b))),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: clearImage,
+                        child: const Text("Clear Image",
+                            style: TextStyle(color: Color(0xFF06402b))),
+                      ),
+                    ]
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => saveFace(),
-              child: const Text("Save Face",
-                  style: TextStyle(color: Color(0xFF06402b))),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => deleteFace(int.parse(_nameController.text)),
-              child: const Text("Delete Face",
-                  style: TextStyle(color: Color(0xFF06402b))),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: clearImage,
-              child: const Text("Clear Image",
-                  style: TextStyle(color: Color(0xFF06402b))),
-            ),
-          ]
-        ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -206,7 +227,7 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
           );
         },
         backgroundColor: Colors.white,
-        child:  Icon(
+        child: Icon(
           Icons.photo_album_outlined,
           color: Color(0xFF06402b),
         ), // Set background color
