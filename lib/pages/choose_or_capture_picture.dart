@@ -32,9 +32,14 @@ class ChooseOrCapturePictureState extends State<ChooseOrCapturePicture> {
 
   Future<void> requestPermissions() async {
     PermissionStatus cameraStatus = await Permission.camera.request();
-    PermissionStatus storageStatus = await Permission.storage.request();
-
-    if (!cameraStatus.isGranted || !storageStatus.isGranted) {
+    await Permission.storage.request();
+    if (cameraStatus.isGranted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Permissions has been granted!")),
+      );
+    }
+    else{
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Permissions not granted!")),
